@@ -387,6 +387,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import BookDetails from "../components/BookDetails";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -395,6 +396,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
   const [filter, setFilter] = useState("All");
+  const [selectedBook, setSelectedBook] = useState(null);
 
   // =========================
   // FETCH BOOKS
@@ -459,10 +461,7 @@ export default function Dashboard() {
       const response = await api.patch(`/books/${book._id}`, {
         status: book.status,
 
-        currentPage:
-          book.status === "Reading"
-            ? Number(book.currentPage) || 0
-            : Number(book.currentPage) || 0,
+        currentPage: Number(book.currentPage) || 0,
 
         rating:
           book.rating === null ||
@@ -478,6 +477,11 @@ export default function Dashboard() {
         prevBooks.map((item) =>
           item._id === book._id ? response.data.book : item,
         ),
+      );
+
+      // Agar details modal open hai to usko bhi updated data do
+      setSelectedBook((prev) =>
+        prev?._id === book._id ? response.data.book : prev,
       );
 
       alert("Book updated successfully!");
@@ -512,6 +516,9 @@ export default function Dashboard() {
       setBooks((prevBooks) =>
         prevBooks.filter((book) => book._id !== bookId),
       );
+
+      // Agar deleted book ka details modal open ho
+      setSelectedBook(null);
     } catch (error) {
       console.error("Delete Error:", error);
 
@@ -536,7 +543,9 @@ export default function Dashboard() {
       100,
       Math.max(
         0,
-        Math.round((currentPage / book.totalPages) * 100),
+        Math.round(
+          (currentPage / book.totalPages) * 100,
+        ),
       ),
     );
   };
@@ -547,7 +556,9 @@ export default function Dashboard() {
   const filteredBooks =
     filter === "All"
       ? books
-      : books.filter((book) => book.status === filter);
+      : books.filter(
+          (book) => book.status === filter,
+        );
 
   // =========================
   // STATS
@@ -568,14 +579,20 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard">
+
       {/* =========================
           NAVBAR
       ========================= */}
       <nav className="navbar">
-        <div className="logo">ShelfLife</div>
+
+        <div className="logo">
+          ShelfLife
+        </div>
 
         <div className="nav-actions">
+
           <button
+            type="button"
             className="search-btn"
             onClick={() => navigate("/search")}
           >
@@ -583,12 +600,15 @@ export default function Dashboard() {
           </button>
 
           <button
+            type="button"
             className="logout-btn"
             onClick={handleLogout}
           >
             Logout
           </button>
+
         </div>
+
       </nav>
 
       {/* =========================
@@ -598,13 +618,17 @@ export default function Dashboard() {
 
         {/* HEADER */}
         <div className="dashboard-header">
+
           <div>
+
             <h1>My Library</h1>
 
             <p>
               Keep track of your reading journey.
             </p>
+
           </div>
+
         </div>
 
         {/* =========================
@@ -614,8 +638,11 @@ export default function Dashboard() {
 
           {/* TOTAL */}
           <button
+            type="button"
             className={`stat-card ${
-              filter === "All" ? "stat-active" : ""
+              filter === "All"
+                ? "stat-active"
+                : ""
             }`}
             onClick={() => setFilter("All")}
           >
@@ -625,12 +652,15 @@ export default function Dashboard() {
 
           {/* WANT TO READ */}
           <button
+            type="button"
             className={`stat-card ${
               filter === "Want to Read"
                 ? "stat-active"
                 : ""
             }`}
-            onClick={() => setFilter("Want to Read")}
+            onClick={() =>
+              setFilter("Want to Read")
+            }
           >
             <span>Want to Read</span>
             <strong>{wantToRead}</strong>
@@ -638,12 +668,15 @@ export default function Dashboard() {
 
           {/* READING */}
           <button
+            type="button"
             className={`stat-card ${
               filter === "Reading"
                 ? "stat-active"
                 : ""
             }`}
-            onClick={() => setFilter("Reading")}
+            onClick={() =>
+              setFilter("Reading")
+            }
           >
             <span>Reading</span>
             <strong>{reading}</strong>
@@ -651,12 +684,15 @@ export default function Dashboard() {
 
           {/* READ */}
           <button
+            type="button"
             className={`stat-card ${
               filter === "Read"
                 ? "stat-active"
                 : ""
             }`}
-            onClick={() => setFilter("Read")}
+            onClick={() =>
+              setFilter("Read")
+            }
           >
             <span>Read</span>
             <strong>{read}</strong>
@@ -669,10 +705,11 @@ export default function Dashboard() {
         ========================= */}
         <section className="books-section">
 
-          {/* SECTION HEADER */}
+          {/* HEADER */}
           <div className="books-section-header">
 
             <div>
+
               <h2>My Books</h2>
 
               <p className="filter-description">
@@ -683,9 +720,10 @@ export default function Dashboard() {
                     : filter}
                 </strong>
               </p>
+
             </div>
 
-            {/* FILTERS */}
+            {/* FILTER BUTTONS */}
             <div className="book-filters">
 
               <button
@@ -695,7 +733,9 @@ export default function Dashboard() {
                     ? "active"
                     : ""
                 }
-                onClick={() => setFilter("All")}
+                onClick={() =>
+                  setFilter("All")
+                }
               >
                 All Books
               </button>
@@ -743,20 +783,28 @@ export default function Dashboard() {
               </button>
 
             </div>
+
           </div>
 
           {/* =========================
               LOADING
           ========================= */}
           {loading ? (
+
             <div className="empty-state">
-              <h3>Loading your library...</h3>
+              <h3>
+                Loading your library...
+              </h3>
             </div>
+
           ) : books.length === 0 ? (
 
             /* EMPTY LIBRARY */
             <div className="empty-state">
-              <h3>Your shelf is empty</h3>
+
+              <h3>
+                Your shelf is empty
+              </h3>
 
               <p>
                 Search for a book and add it
@@ -764,6 +812,7 @@ export default function Dashboard() {
               </p>
 
               <button
+                type="button"
                 className="empty-search-btn"
                 onClick={() =>
                   navigate("/search")
@@ -771,26 +820,35 @@ export default function Dashboard() {
               >
                 Search Books
               </button>
+
             </div>
 
           ) : filteredBooks.length === 0 ? (
 
             /* NO FILTER RESULT */
             <div className="empty-state">
-              <h3>No books found</h3>
+
+              <h3>
+                No books found
+              </h3>
 
               <p>
                 You don't have any books with
-                the <strong>{filter}</strong>{" "}
+                the{" "}
+                <strong>{filter}</strong>{" "}
                 status.
               </p>
 
               <button
+                type="button"
                 className="empty-search-btn"
-                onClick={() => setFilter("All")}
+                onClick={() =>
+                  setFilter("All")
+                }
               >
                 Show All Books
               </button>
+
             </div>
 
           ) : (
@@ -806,6 +864,7 @@ export default function Dashboard() {
                   getProgress(book);
 
                 return (
+
                   <div
                     className="book-card"
                     key={book._id}
@@ -815,22 +874,28 @@ export default function Dashboard() {
                     <div className="book-cover">
 
                       {book.cover ? (
+
                         <img
                           src={book.cover}
                           alt={book.title}
                         />
+
                       ) : (
+
                         <div className="no-cover">
                           No Cover
                         </div>
+
                       )}
 
                     </div>
 
-                    {/* BOOK INFO */}
+                    {/* INFO */}
                     <div className="book-info">
 
-                      <h3>{book.title}</h3>
+                      <h3>
+                        {book.title}
+                      </h3>
 
                       <p className="author">
                         {book.authors?.join(", ") ||
@@ -843,9 +908,7 @@ export default function Dashboard() {
                         </p>
                       )}
 
-                      {/* =====================
-                          STATUS
-                      ===================== */}
+                      {/* STATUS */}
                       <div className="field">
 
                         <label>
@@ -876,17 +939,18 @@ export default function Dashboard() {
                           <option value="Read">
                             Read
                           </option>
+
                         </select>
 
                       </div>
 
-                      {/* =====================
-                          READING PROGRESS
-                      ===================== */}
+                      {/* PROGRESS */}
                       {book.status === "Reading" && (
+
                         <div className="progress-box">
 
                           <div className="progress-top">
+
                             <span>
                               Page Progress
                             </span>
@@ -894,15 +958,18 @@ export default function Dashboard() {
                             <span>
                               {progress}%
                             </span>
+
                           </div>
 
                           <div className="progress-bar">
+
                             <div
                               className="progress-fill"
                               style={{
                                 width: `${progress}%`,
                               }}
                             />
+
                           </div>
 
                           <div className="page-input-row">
@@ -925,23 +992,21 @@ export default function Dashboard() {
 
                             <span>
                               /{" "}
-                              {book.totalPages ||
-                                0}{" "}
+                              {book.totalPages || 0}{" "}
                               pages
                             </span>
 
                           </div>
 
                         </div>
+
                       )}
 
-                      {/* =====================
-                          RATING + REVIEW
-                      ===================== */}
+                      {/* RATING + REVIEW */}
                       {book.status === "Read" && (
+
                         <div className="review-section">
 
-                          {/* RATING */}
                           <div className="field">
 
                             <label>
@@ -960,6 +1025,7 @@ export default function Dashboard() {
                                 )
                               }
                             >
+
                               <option value="">
                                 Select rating
                               </option>
@@ -988,7 +1054,6 @@ export default function Dashboard() {
 
                           </div>
 
-                          {/* REVIEW */}
                           <div className="field">
 
                             <label>
@@ -1013,11 +1078,10 @@ export default function Dashboard() {
                           </div>
 
                         </div>
+
                       )}
 
-                      {/* =====================
-                          SAVE
-                      ===================== */}
+                      {/* SAVE */}
                       <button
                         type="button"
                         className="save-btn"
@@ -1033,9 +1097,18 @@ export default function Dashboard() {
                           : "Save Changes"}
                       </button>
 
-                      {/* =====================
-                          DELETE
-                      ===================== */}
+                      {/* VIEW DETAILS */}
+                      <button
+                        type="button"
+                        className="details-btn"
+                        onClick={() =>
+                          setSelectedBook(book)
+                        }
+                      >
+                        View Details
+                      </button>
+
+                      {/* DELETE */}
                       <button
                         type="button"
                         className="delete-btn"
@@ -1047,15 +1120,30 @@ export default function Dashboard() {
                       </button>
 
                     </div>
+
                   </div>
+
                 );
               })}
 
             </div>
+
           )}
 
         </section>
+
       </main>
+
+      {/* =========================
+          BOOK DETAILS
+      ========================= */}
+      {selectedBook && (
+        <BookDetails
+          book={selectedBook}
+          onClose={() => setSelectedBook(null)}
+        />
+      )}
+
     </div>
   );
 }
