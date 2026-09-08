@@ -372,6 +372,8 @@ export const updateBookReview = async (req, res) => {
   }
 };
 
+
+
 // ===============================
 // Update Book
 // ===============================
@@ -390,18 +392,133 @@ export const updateBook = async (req, res) => {
       });
     }
 
-    const allowedFields = [
-      "status",
-      "currentPage",
-      "rating",
-      "review",
-    ];
+    const {
+      status,
+      currentPage,
+      rating,
+      review,
+    } = req.body;
 
-    allowedFields.forEach((field) => {
-      if (req.body[field] !== undefined) {
-        book[field] = req.body[field];
+    // ===============================
+    // STATUS VALIDATION
+    // ===============================
+    if (status !== undefined) {
+      const allowedStatuses = [
+        "Want to Read",
+        "Reading",
+        "Read",
+      ];
+
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({
+          message: "Invalid reading status",
+        });
       }
-    });
+
+      book.status = status;
+    }
+
+    // ===============================
+    // CURRENT PAGE VALIDATION
+    // ===============================
+    if (currentPage !== undefined) {
+      const page = Number(currentPage);
+
+      if (
+        Number.isNaN(page) ||
+        page < 0 ||
+        !Number.isInteger(page)
+      ) {
+        return res.status(400).json({
+          message: "Current page must be a valid positive number",
+        });
+      }
+
+      if (
+        book.totalPages > 0 &&
+        page > book.totalPages
+      ) {
+        return res.status(400).json({
+          message: `Current page cannot be greater than ${book.totalPages}`,
+        });
+      }
+
+      book.currentPage = page;
+    }
+
+    // ===============================
+    // RATING VALIDATION
+    // ===============================
+    if (
+      rating !== undefined &&
+      rating !== null &&
+      rating !== ""
+    ) {
+      const numericRating = Number(rating);
+
+      if (
+        !Number.isInteger(numericRating) ||
+        numericRating < 1 ||
+        numericRating > 5
+      ) {
+        return res.status(400).json({
+          message: "Rating must be a whole number between 1 and 5",
+        });
+      }
+
+      book.rating = numericRating;
+    } else if (
+      rating === null ||
+      rating === ""
+    ) {
+      book.rating = null;
+    }
+
+    // ===============================
+    // REVIEW
+    // ===============================
+    if (review !== undefined) {
+      if (typeof review !== "string") {
+        return res.status(400).json({
+          message: "Review must be text",
+        });
+      }
+
+      book.review = review.trim();
+    }
+
+    // ===============================
+    // AUTOMATIC STATUS
+    // ===============================
+
+    // Last page reached
+    if (
+      book.totalPages > 0 &&
+      book.currentPage === book.totalPages
+    ) {
+      book.status = "Read";
+    }
+
+    // Started reading
+    else if (
+      book.currentPage > 0 &&
+      book.status === "Want to Read"
+    ) {
+      book.status = "Reading";
+    }
+
+    // If manually marked Read
+    if (book.status === "Read" && book.totalPages > 0) {
+      book.currentPage = book.totalPages;
+    }
+
+    // ===============================
+    // REVIEW RULE
+    // ===============================
+    if (book.status !== "Read") {
+      book.rating = null;
+      book.review = "";
+    }
 
     await book.save();
 
