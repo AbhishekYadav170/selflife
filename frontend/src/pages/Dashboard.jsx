@@ -1,3 +1,389 @@
+// import { useEffect, useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import api from "../services/api";
+
+// export default function Dashboard() {
+//   const navigate = useNavigate();
+
+//   const [books, setBooks] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [savingId, setSavingId] = useState(null);
+
+//   const fetchShelf = async () => {
+//     try {
+//       const response = await api.get("/books/my-shelf");
+//       setBooks(response.data.books || []);
+//     } catch (error) {
+//       console.error("Shelf Error:", error);
+
+//       if (error.response?.status === 401) {
+//         localStorage.removeItem("token");
+//         navigate("/login");
+//       }
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchShelf();
+//   }, []);
+
+//   const handleLogout = () => {
+//     localStorage.removeItem("token");
+//     navigate("/login");
+//   };
+
+//   const handleChange = (bookId, field, value) => {
+//     setBooks((prevBooks) =>
+//       prevBooks.map((book) =>
+//         book._id === bookId
+//           ? {
+//               ...book,
+//               [field]:
+//                 field === "currentPage" || field === "rating"
+//                   ? Number(value)
+//                   : value,
+//             }
+//           : book,
+//       ),
+//     );
+//   };
+
+//   //   const saveBook = async (book) => {
+//   //     setSavingId(book._id);
+
+//   //     try {
+//   //       const response = await api.put(`/books/${book._id}`, {
+//   //         status: book.status,
+//   //         currentPage: Number(book.currentPage) || 0,
+//   //         rating:
+//   //           book.rating === null ||
+//   //           book.rating === "" ||
+//   //           book.rating === undefined
+//   //             ? null
+//   //             : Number(book.rating),
+//   //         review: book.review || "",
+//   //       });
+
+//   //       setBooks((prevBooks) =>
+//   //         prevBooks.map((item) =>
+//   //           item._id === book._id
+//   //             ? response.data.book
+//   //             : item
+//   //         )
+//   //       );
+
+//   //       alert("Book updated successfully!");
+//   //     } catch (error) {
+//   //       console.error("Update Error:", error);
+
+//   //       alert(
+//   //         error.response?.data?.message ||
+//   //           "Failed to update book"
+//   //       );
+//   //     } finally {
+//   //       setSavingId(null);
+//   //     }
+//   //   };
+
+//   const saveBook = async (book) => {
+//     setSavingId(book._id);
+
+//     try {
+//       const response = await api.patch(`/books/${book._id}`, {
+//         status: book.status,
+//         currentPage: Number(book.currentPage) || 0,
+//         rating:
+//           book.rating === null ||
+//           book.rating === "" ||
+//           book.rating === undefined
+//             ? null
+//             : Number(book.rating),
+//         review: book.review || "",
+//       });
+
+//       setBooks((prevBooks) =>
+//         prevBooks.map((item) =>
+//           item._id === book._id ? response.data.book : item,
+//         ),
+//       );
+
+//       alert("Book updated successfully!");
+//     } catch (error) {
+//       console.error("UPDATE ERROR:", error);
+//       console.error("STATUS:", error.response?.status);
+//       console.error("DATA:", error.response?.data);
+
+//       alert(
+//         error.response?.data?.message ||
+//           error.response?.data?.error ||
+//           "Failed to update book",
+//       );
+//     } finally {
+//       setSavingId(null);
+//     }
+//   };
+
+//   const deleteBook = async (bookId) => {
+//     const confirmDelete = window.confirm(
+//       "Are you sure you want to remove this book?",
+//     );
+
+//     if (!confirmDelete) return;
+
+//     try {
+//       await api.delete(`/books/${bookId}`);
+
+//       setBooks((prevBooks) => prevBooks.filter((book) => book._id !== bookId));
+//     } catch (error) {
+//       console.error("Delete Error:", error);
+
+//       alert(error.response?.data?.message || "Failed to delete book");
+//     }
+//   };
+
+//   const getProgress = (book) => {
+//     if (!book.totalPages || book.totalPages <= 0) {
+//       return 0;
+//     }
+
+//     return Math.min(
+//       100,
+//       Math.round((book.currentPage / book.totalPages) * 100),
+//     );
+//   };
+
+//   return (
+//     <div className="dashboard">
+//       {/* Navbar */}
+//       <nav className="navbar">
+//         <div className="logo">ShelfLife</div>
+
+//         <div className="nav-actions">
+//           <button className="search-btn" onClick={() => navigate("/search")}>
+//             Search Books
+//           </button>
+
+//           <button className="logout-btn" onClick={handleLogout}>
+//             Logout
+//           </button>
+//         </div>
+//       </nav>
+
+//       {/* Main */}
+//       <main className="dashboard-main">
+//         {/* Header */}
+//         <div className="dashboard-header">
+//           <div>
+//             <h1>My Library</h1>
+
+//             <p>Keep track of your reading journey.</p>
+//           </div>
+//         </div>
+
+//         {/* Stats */}
+//         <div className="stats">
+//           <div className="stat-card">
+//             <span>Total Books</span>
+//             <strong>{books.length}</strong>
+//           </div>
+
+//           <div className="stat-card">
+//             <span>Want to Read</span>
+//             <strong>
+//               {books.filter((book) => book.status === "Want to Read").length}
+//             </strong>
+//           </div>
+
+//           <div className="stat-card">
+//             <span>Reading</span>
+//             <strong>
+//               {books.filter((book) => book.status === "Reading").length}
+//             </strong>
+//           </div>
+
+//           <div className="stat-card">
+//             <span>Read</span>
+//             <strong>
+//               {books.filter((book) => book.status === "Read").length}
+//             </strong>
+//           </div>
+//         </div>
+
+//         {/* Books */}
+//         <section className="books-section">
+//           <h2>My Books</h2>
+
+//           {loading ? (
+//             <div className="empty-state">Loading your library...</div>
+//           ) : books.length === 0 ? (
+//             <div className="empty-state">
+//               <h3>Your shelf is empty</h3>
+
+//               <p>Search for a book and add it to your library.</p>
+
+//               <button
+//                 className="empty-search-btn"
+//                 onClick={() => navigate("/search")}
+//               >
+//                 Search Books
+//               </button>
+//             </div>
+//           ) : (
+//             <div className="books-grid">
+//               {books.map((book) => {
+//                 const progress = getProgress(book);
+
+//                 return (
+//                   <div className="book-card" key={book._id}>
+//                     {/* Cover */}
+//                     <div className="book-cover">
+//                       {book.cover ? (
+//                         <img src={book.cover} alt={book.title} />
+//                       ) : (
+//                         <div className="no-cover">No Cover</div>
+//                       )}
+//                     </div>
+
+//                     {/* Info */}
+//                     <div className="book-info">
+//                       <h3>{book.title}</h3>
+
+//                       <p className="author">
+//                         {book.authors?.join(", ") || "Unknown Author"}
+//                       </p>
+
+//                       {book.isbn && <p className="isbn">ISBN: {book.isbn}</p>}
+
+//                       {/* Status */}
+//                       <div className="field">
+//                         <label>Reading Status</label>
+
+//                         <select
+//                           value={book.status}
+//                           onChange={(e) =>
+//                             handleChange(book._id, "status", e.target.value)
+//                           }
+//                         >
+//                           <option value="Want to Read">Want to Read</option>
+
+//                           <option value="Reading">Reading</option>
+
+//                           <option value="Read">Read</option>
+//                         </select>
+//                       </div>
+
+//                       {/* Progress */}
+//                       {book.status === "Reading" && (
+//                         <div className="progress-box">
+//                           <div className="progress-top">
+//                             <span>Page Progress</span>
+
+//                             <span>{progress}%</span>
+//                           </div>
+
+//                           <div className="progress-bar">
+//                             <div
+//                               className="progress-fill"
+//                               style={{
+//                                 width: `${progress}%`,
+//                               }}
+//                             />
+//                           </div>
+
+//                           <div className="page-input-row">
+//                             <input
+//                               type="number"
+//                               min="0"
+//                               max={book.totalPages}
+//                               value={book.currentPage}
+//                               onChange={(e) =>
+//                                 handleChange(
+//                                   book._id,
+//                                   "currentPage",
+//                                   e.target.value,
+//                                 )
+//                               }
+//                             />
+
+//                             <span>/ {book.totalPages} pages</span>
+//                           </div>
+//                         </div>
+//                       )}
+
+//                       {/* Rating */}
+//                       {book.status === "Read" && (
+//                         <div className="review-section">
+//                           <div className="field">
+//                             <label>Your Rating</label>
+
+//                             <select
+//                               value={book.rating ?? ""}
+//                               onChange={(e) =>
+//                                 handleChange(book._id, "rating", e.target.value)
+//                               }
+//                             >
+//                               <option value="">Select rating</option>
+
+//                               <option value="1">⭐ 1 / 5</option>
+
+//                               <option value="2">⭐⭐ 2 / 5</option>
+
+//                               <option value="3">⭐⭐⭐ 3 / 5</option>
+
+//                               <option value="4">⭐⭐⭐⭐ 4 / 5</option>
+
+//                               <option value="5">⭐⭐⭐⭐⭐ 5 / 5</option>
+//                             </select>
+//                           </div>
+
+//                           <div className="field">
+//                             <label>Your Review</label>
+
+//                             <textarea
+//                               value={book.review || ""}
+//                               onChange={(e) =>
+//                                 handleChange(book._id, "review", e.target.value)
+//                               }
+//                               placeholder="Write your review..."
+//                               rows="4"
+//                             />
+//                           </div>
+//                         </div>
+//                       )}
+
+//                       {/* Save */}
+//                       <button
+//                         className="save-btn"
+//                         onClick={() => saveBook(book)}
+//                         disabled={savingId === book._id}
+//                       >
+//                         {savingId === book._id ? "Saving..." : "Save Changes"}
+//                       </button>
+
+//                       {/* Delete */}
+//                       <button
+//                         className="delete-btn"
+//                         onClick={() => deleteBook(book._id)}
+//                       >
+//                         Remove from Shelf
+//                       </button>
+//                     </div>
+//                   </div>
+//                 );
+//               })}
+//             </div>
+//           )}
+//         </section>
+//       </main>
+//     </div>
+//   );
+// }
+
+
+
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
@@ -8,10 +394,15 @@ export default function Dashboard() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
+  const [filter, setFilter] = useState("All");
 
+  // =========================
+  // FETCH BOOKS
+  // =========================
   const fetchShelf = async () => {
     try {
       const response = await api.get("/books/my-shelf");
+
       setBooks(response.data.books || []);
     } catch (error) {
       console.error("Shelf Error:", error);
@@ -29,11 +420,17 @@ export default function Dashboard() {
     fetchShelf();
   }, []);
 
+  // =========================
+  // LOGOUT
+  // =========================
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  // =========================
+  // HANDLE INPUT CHANGE
+  // =========================
   const handleChange = (bookId, field, value) => {
     setBooks((prevBooks) =>
       prevBooks.map((book) =>
@@ -42,7 +439,9 @@ export default function Dashboard() {
               ...book,
               [field]:
                 field === "currentPage" || field === "rating"
-                  ? Number(value)
+                  ? value === ""
+                    ? ""
+                    : Number(value)
                   : value,
             }
           : book,
@@ -50,56 +449,28 @@ export default function Dashboard() {
     );
   };
 
-  //   const saveBook = async (book) => {
-  //     setSavingId(book._id);
-
-  //     try {
-  //       const response = await api.put(`/books/${book._id}`, {
-  //         status: book.status,
-  //         currentPage: Number(book.currentPage) || 0,
-  //         rating:
-  //           book.rating === null ||
-  //           book.rating === "" ||
-  //           book.rating === undefined
-  //             ? null
-  //             : Number(book.rating),
-  //         review: book.review || "",
-  //       });
-
-  //       setBooks((prevBooks) =>
-  //         prevBooks.map((item) =>
-  //           item._id === book._id
-  //             ? response.data.book
-  //             : item
-  //         )
-  //       );
-
-  //       alert("Book updated successfully!");
-  //     } catch (error) {
-  //       console.error("Update Error:", error);
-
-  //       alert(
-  //         error.response?.data?.message ||
-  //           "Failed to update book"
-  //       );
-  //     } finally {
-  //       setSavingId(null);
-  //     }
-  //   };
-
+  // =========================
+  // SAVE BOOK
+  // =========================
   const saveBook = async (book) => {
     setSavingId(book._id);
 
     try {
       const response = await api.patch(`/books/${book._id}`, {
         status: book.status,
-        currentPage: Number(book.currentPage) || 0,
+
+        currentPage:
+          book.status === "Reading"
+            ? Number(book.currentPage) || 0
+            : Number(book.currentPage) || 0,
+
         rating:
           book.rating === null ||
           book.rating === "" ||
           book.rating === undefined
             ? null
             : Number(book.rating),
+
         review: book.review || "",
       });
 
@@ -125,6 +496,9 @@ export default function Dashboard() {
     }
   };
 
+  // =========================
+  // DELETE BOOK
+  // =========================
   const deleteBook = async (bookId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to remove this book?",
@@ -135,152 +509,391 @@ export default function Dashboard() {
     try {
       await api.delete(`/books/${bookId}`);
 
-      setBooks((prevBooks) => prevBooks.filter((book) => book._id !== bookId));
+      setBooks((prevBooks) =>
+        prevBooks.filter((book) => book._id !== bookId),
+      );
     } catch (error) {
       console.error("Delete Error:", error);
 
-      alert(error.response?.data?.message || "Failed to delete book");
+      alert(
+        error.response?.data?.message ||
+          "Failed to delete book",
+      );
     }
   };
 
+  // =========================
+  // PROGRESS
+  // =========================
   const getProgress = (book) => {
     if (!book.totalPages || book.totalPages <= 0) {
       return 0;
     }
 
+    const currentPage = Number(book.currentPage) || 0;
+
     return Math.min(
       100,
-      Math.round((book.currentPage / book.totalPages) * 100),
+      Math.max(
+        0,
+        Math.round((currentPage / book.totalPages) * 100),
+      ),
     );
   };
 
+  // =========================
+  // FILTER BOOKS
+  // =========================
+  const filteredBooks =
+    filter === "All"
+      ? books
+      : books.filter((book) => book.status === filter);
+
+  // =========================
+  // STATS
+  // =========================
+  const totalBooks = books.length;
+
+  const wantToRead = books.filter(
+    (book) => book.status === "Want to Read",
+  ).length;
+
+  const reading = books.filter(
+    (book) => book.status === "Reading",
+  ).length;
+
+  const read = books.filter(
+    (book) => book.status === "Read",
+  ).length;
+
   return (
     <div className="dashboard">
-      {/* Navbar */}
+      {/* =========================
+          NAVBAR
+      ========================= */}
       <nav className="navbar">
         <div className="logo">ShelfLife</div>
 
         <div className="nav-actions">
-          <button className="search-btn" onClick={() => navigate("/search")}>
+          <button
+            className="search-btn"
+            onClick={() => navigate("/search")}
+          >
             Search Books
           </button>
 
-          <button className="logout-btn" onClick={handleLogout}>
+          <button
+            className="logout-btn"
+            onClick={handleLogout}
+          >
             Logout
           </button>
         </div>
       </nav>
 
-      {/* Main */}
+      {/* =========================
+          MAIN
+      ========================= */}
       <main className="dashboard-main">
-        {/* Header */}
+
+        {/* HEADER */}
         <div className="dashboard-header">
           <div>
             <h1>My Library</h1>
 
-            <p>Keep track of your reading journey.</p>
+            <p>
+              Keep track of your reading journey.
+            </p>
           </div>
         </div>
 
-        {/* Stats */}
+        {/* =========================
+            STATS
+        ========================= */}
         <div className="stats">
-          <div className="stat-card">
+
+          {/* TOTAL */}
+          <button
+            className={`stat-card ${
+              filter === "All" ? "stat-active" : ""
+            }`}
+            onClick={() => setFilter("All")}
+          >
             <span>Total Books</span>
-            <strong>{books.length}</strong>
-          </div>
+            <strong>{totalBooks}</strong>
+          </button>
 
-          <div className="stat-card">
+          {/* WANT TO READ */}
+          <button
+            className={`stat-card ${
+              filter === "Want to Read"
+                ? "stat-active"
+                : ""
+            }`}
+            onClick={() => setFilter("Want to Read")}
+          >
             <span>Want to Read</span>
-            <strong>
-              {books.filter((book) => book.status === "Want to Read").length}
-            </strong>
-          </div>
+            <strong>{wantToRead}</strong>
+          </button>
 
-          <div className="stat-card">
+          {/* READING */}
+          <button
+            className={`stat-card ${
+              filter === "Reading"
+                ? "stat-active"
+                : ""
+            }`}
+            onClick={() => setFilter("Reading")}
+          >
             <span>Reading</span>
-            <strong>
-              {books.filter((book) => book.status === "Reading").length}
-            </strong>
-          </div>
+            <strong>{reading}</strong>
+          </button>
 
-          <div className="stat-card">
+          {/* READ */}
+          <button
+            className={`stat-card ${
+              filter === "Read"
+                ? "stat-active"
+                : ""
+            }`}
+            onClick={() => setFilter("Read")}
+          >
             <span>Read</span>
-            <strong>
-              {books.filter((book) => book.status === "Read").length}
-            </strong>
-          </div>
+            <strong>{read}</strong>
+          </button>
+
         </div>
 
-        {/* Books */}
+        {/* =========================
+            BOOK SECTION
+        ========================= */}
         <section className="books-section">
-          <h2>My Books</h2>
 
+          {/* SECTION HEADER */}
+          <div className="books-section-header">
+
+            <div>
+              <h2>My Books</h2>
+
+              <p className="filter-description">
+                Showing:{" "}
+                <strong>
+                  {filter === "All"
+                    ? "All Books"
+                    : filter}
+                </strong>
+              </p>
+            </div>
+
+            {/* FILTERS */}
+            <div className="book-filters">
+
+              <button
+                type="button"
+                className={
+                  filter === "All"
+                    ? "active"
+                    : ""
+                }
+                onClick={() => setFilter("All")}
+              >
+                All Books
+              </button>
+
+              <button
+                type="button"
+                className={
+                  filter === "Want to Read"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setFilter("Want to Read")
+                }
+              >
+                Want to Read
+              </button>
+
+              <button
+                type="button"
+                className={
+                  filter === "Reading"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setFilter("Reading")
+                }
+              >
+                Reading
+              </button>
+
+              <button
+                type="button"
+                className={
+                  filter === "Read"
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setFilter("Read")
+                }
+              >
+                Read
+              </button>
+
+            </div>
+          </div>
+
+          {/* =========================
+              LOADING
+          ========================= */}
           {loading ? (
-            <div className="empty-state">Loading your library...</div>
+            <div className="empty-state">
+              <h3>Loading your library...</h3>
+            </div>
           ) : books.length === 0 ? (
+
+            /* EMPTY LIBRARY */
             <div className="empty-state">
               <h3>Your shelf is empty</h3>
 
-              <p>Search for a book and add it to your library.</p>
+              <p>
+                Search for a book and add it
+                to your library.
+              </p>
 
               <button
                 className="empty-search-btn"
-                onClick={() => navigate("/search")}
+                onClick={() =>
+                  navigate("/search")
+                }
               >
                 Search Books
               </button>
             </div>
+
+          ) : filteredBooks.length === 0 ? (
+
+            /* NO FILTER RESULT */
+            <div className="empty-state">
+              <h3>No books found</h3>
+
+              <p>
+                You don't have any books with
+                the <strong>{filter}</strong>{" "}
+                status.
+              </p>
+
+              <button
+                className="empty-search-btn"
+                onClick={() => setFilter("All")}
+              >
+                Show All Books
+              </button>
+            </div>
+
           ) : (
+
+            /* =========================
+               BOOK GRID
+            ========================= */
             <div className="books-grid">
-              {books.map((book) => {
-                const progress = getProgress(book);
+
+              {filteredBooks.map((book) => {
+
+                const progress =
+                  getProgress(book);
 
                 return (
-                  <div className="book-card" key={book._id}>
-                    {/* Cover */}
+                  <div
+                    className="book-card"
+                    key={book._id}
+                  >
+
+                    {/* COVER */}
                     <div className="book-cover">
+
                       {book.cover ? (
-                        <img src={book.cover} alt={book.title} />
+                        <img
+                          src={book.cover}
+                          alt={book.title}
+                        />
                       ) : (
-                        <div className="no-cover">No Cover</div>
+                        <div className="no-cover">
+                          No Cover
+                        </div>
                       )}
+
                     </div>
 
-                    {/* Info */}
+                    {/* BOOK INFO */}
                     <div className="book-info">
+
                       <h3>{book.title}</h3>
 
                       <p className="author">
-                        {book.authors?.join(", ") || "Unknown Author"}
+                        {book.authors?.join(", ") ||
+                          "Unknown Author"}
                       </p>
 
-                      {book.isbn && <p className="isbn">ISBN: {book.isbn}</p>}
+                      {book.isbn && (
+                        <p className="isbn">
+                          ISBN: {book.isbn}
+                        </p>
+                      )}
 
-                      {/* Status */}
+                      {/* =====================
+                          STATUS
+                      ===================== */}
                       <div className="field">
-                        <label>Reading Status</label>
+
+                        <label>
+                          Reading Status
+                        </label>
 
                         <select
-                          value={book.status}
+                          value={
+                            book.status ||
+                            "Want to Read"
+                          }
                           onChange={(e) =>
-                            handleChange(book._id, "status", e.target.value)
+                            handleChange(
+                              book._id,
+                              "status",
+                              e.target.value,
+                            )
                           }
                         >
-                          <option value="Want to Read">Want to Read</option>
+                          <option value="Want to Read">
+                            Want to Read
+                          </option>
 
-                          <option value="Reading">Reading</option>
+                          <option value="Reading">
+                            Reading
+                          </option>
 
-                          <option value="Read">Read</option>
+                          <option value="Read">
+                            Read
+                          </option>
                         </select>
+
                       </div>
 
-                      {/* Progress */}
+                      {/* =====================
+                          READING PROGRESS
+                      ===================== */}
                       {book.status === "Reading" && (
                         <div className="progress-box">
-                          <div className="progress-top">
-                            <span>Page Progress</span>
 
-                            <span>{progress}%</span>
+                          <div className="progress-top">
+                            <span>
+                              Page Progress
+                            </span>
+
+                            <span>
+                              {progress}%
+                            </span>
                           </div>
 
                           <div className="progress-bar">
@@ -293,11 +906,14 @@ export default function Dashboard() {
                           </div>
 
                           <div className="page-input-row">
+
                             <input
                               type="number"
                               min="0"
                               max={book.totalPages}
-                              value={book.currentPage}
+                              value={
+                                book.currentPage ?? 0
+                              }
                               onChange={(e) =>
                                 handleChange(
                                   book._id,
@@ -307,74 +923,137 @@ export default function Dashboard() {
                               }
                             />
 
-                            <span>/ {book.totalPages} pages</span>
+                            <span>
+                              /{" "}
+                              {book.totalPages ||
+                                0}{" "}
+                              pages
+                            </span>
+
                           </div>
+
                         </div>
                       )}
 
-                      {/* Rating */}
+                      {/* =====================
+                          RATING + REVIEW
+                      ===================== */}
                       {book.status === "Read" && (
                         <div className="review-section">
+
+                          {/* RATING */}
                           <div className="field">
-                            <label>Your Rating</label>
+
+                            <label>
+                              Your Rating
+                            </label>
 
                             <select
-                              value={book.rating ?? ""}
+                              value={
+                                book.rating ?? ""
+                              }
                               onChange={(e) =>
-                                handleChange(book._id, "rating", e.target.value)
+                                handleChange(
+                                  book._id,
+                                  "rating",
+                                  e.target.value,
+                                )
                               }
                             >
-                              <option value="">Select rating</option>
+                              <option value="">
+                                Select rating
+                              </option>
 
-                              <option value="1">⭐ 1 / 5</option>
+                              <option value="1">
+                                ⭐ 1 / 5
+                              </option>
 
-                              <option value="2">⭐⭐ 2 / 5</option>
+                              <option value="2">
+                                ⭐⭐ 2 / 5
+                              </option>
 
-                              <option value="3">⭐⭐⭐ 3 / 5</option>
+                              <option value="3">
+                                ⭐⭐⭐ 3 / 5
+                              </option>
 
-                              <option value="4">⭐⭐⭐⭐ 4 / 5</option>
+                              <option value="4">
+                                ⭐⭐⭐⭐ 4 / 5
+                              </option>
 
-                              <option value="5">⭐⭐⭐⭐⭐ 5 / 5</option>
+                              <option value="5">
+                                ⭐⭐⭐⭐⭐ 5 / 5
+                              </option>
+
                             </select>
+
                           </div>
 
+                          {/* REVIEW */}
                           <div className="field">
-                            <label>Your Review</label>
+
+                            <label>
+                              Your Review
+                            </label>
 
                             <textarea
-                              value={book.review || ""}
+                              value={
+                                book.review || ""
+                              }
                               onChange={(e) =>
-                                handleChange(book._id, "review", e.target.value)
+                                handleChange(
+                                  book._id,
+                                  "review",
+                                  e.target.value,
+                                )
                               }
                               placeholder="Write your review..."
                               rows="4"
                             />
+
                           </div>
+
                         </div>
                       )}
 
-                      {/* Save */}
+                      {/* =====================
+                          SAVE
+                      ===================== */}
                       <button
+                        type="button"
                         className="save-btn"
-                        onClick={() => saveBook(book)}
-                        disabled={savingId === book._id}
+                        onClick={() =>
+                          saveBook(book)
+                        }
+                        disabled={
+                          savingId === book._id
+                        }
                       >
-                        {savingId === book._id ? "Saving..." : "Save Changes"}
+                        {savingId === book._id
+                          ? "Saving..."
+                          : "Save Changes"}
                       </button>
 
-                      {/* Delete */}
+                      {/* =====================
+                          DELETE
+                      ===================== */}
                       <button
+                        type="button"
                         className="delete-btn"
-                        onClick={() => deleteBook(book._id)}
+                        onClick={() =>
+                          deleteBook(book._id)
+                        }
                       >
                         Remove from Shelf
                       </button>
+
                     </div>
                   </div>
                 );
               })}
+
             </div>
           )}
+
         </section>
       </main>
     </div>
